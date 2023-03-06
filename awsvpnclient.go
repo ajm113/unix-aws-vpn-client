@@ -57,6 +57,12 @@ func main() {
 					Value:     os.TempDir(),
 					Usage:     "Temp folder location of formatted openvpn configurations.",
 				},
+				&cli.StringFlag{
+					TakesFile: false,
+					Name:      "logLevel",
+					Value:     "1",
+					Usage:     "Logging detail. Should be an integer value between -1 and 5 (logging levels in the zerolog library). Defaults to '0' (Info level).",
+				},
 			},
 		},
 	}

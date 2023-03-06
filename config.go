@@ -13,6 +13,8 @@ type (
 		Sudo      string
 		Shell     string
 		ShellArgs []string
+		User      string
+		Group     string
 	}
 
 	server struct {

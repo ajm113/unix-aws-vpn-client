@@ -9,6 +9,7 @@ import (
 	"os/exec"
 	"strconv"
 
+	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/urfave/cli/v2"
 	"mvdan.cc/xurls/v2"
@@ -27,6 +28,15 @@ type (
 )
 
 func serveAction(c *cli.Context) error {
+
+	level, err := zerolog.ParseLevel(c.String("logLevel"))
+	if err != nil {
+		log.Info().Msg("Error parsing log level '" + c.String("logLevel") + "'. Defaulting to 'Info' level.")
+		zerolog.SetGlobalLevel(zerolog.InfoLevel)
+	} else {
+		zerolog.SetGlobalLevel(level)
+	}
+
 	log.Info().Msg("Loading configuration files...")
 
 	openVPNConfig := c.String("config")
@@ -160,14 +170,25 @@ func startOpenVPNConnection(handle *serveHandle) {
 		log.Fatal().Err(err).Msg("Failed saving auth config for OpenVPN tunnel! " + errorSuffix)
 	}
 
-	baseCommand := exec.Command(
-		handle.Config.Vpn.OpenVPN,
-		"--verb", "3",
+	args := []string{"--verb", "3",
 		"--config", handle.OpenVPNConnectionConfig.Filename,
 		"--proto", handle.OpenVPNConnectionConfig.Protocol,
 		"--remote", handle.ServiceIPv4, strconv.FormatInt(int64(handle.OpenVPNConnectionConfig.Port), 10),
 		"--script-security", "2",
 		"--auth-user-pass", tmpAuthConifg,
+	}
+
+	if handle.Config.Vpn.User != "" {
+		args = append(args, "--user", handle.Config.Vpn.User)
+	}
+
+	if handle.Config.Vpn.Group != "" {
+		args = append(args, "--group", handle.Config.Vpn.Group)
+	}
+
+	baseCommand := exec.Command(
+		handle.Config.Vpn.OpenVPN,
+		args...,
 	)
 
 	if handle.Config.Vpn.Shell == "" {

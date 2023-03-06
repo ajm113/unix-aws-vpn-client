@@ -5,5 +5,7 @@ vpn:
   sudo: /usr/bin/sudo
   shellargs:
     - "-c"
+  user: nobody
+  group: nobody
 server:
   addr: "127.0.0.1:35001"
