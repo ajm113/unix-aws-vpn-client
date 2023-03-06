@@ -10,12 +10,20 @@ import (
 	"path"
 	"runtime"
 	"strings"
+
+	"github.com/rs/zerolog/log"
 )
 
 func openDefaultBrowser(url string) (err error) {
 	switch runtime.GOOS {
 	case "linux":
-		err = exec.Command("xdg-open", url).Start()
+		user := os.Getenv("SUDO_USER")
+		if (user == "") {
+			err = exec.Command("xdg-open", url).Start()
+		} else {
+			log.Info().Msg("open browser as " + user)
+			err = exec.Command("sudo", "-u", user, "xdg-open", url).Start()
+		}
 	case "windows":
 		err = exec.Command("rundll32", "url.dll,FileProtocolHandler", url).Start()
 	case "darwin":
