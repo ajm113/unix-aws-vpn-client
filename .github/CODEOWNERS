@@ -1,0 +1,5 @@
+# SEE: https://docs.github.com/en/github/creating-cloning-and-archiving-repositories/creating-a-repository-on-github/about-code-owners
+# Each line is a file pattern followed by one or more owners.
+
+	# Andrew McRobb
+*	@ajm113
