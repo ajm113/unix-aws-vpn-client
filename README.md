@@ -18,7 +18,7 @@ AWS compatible OpenVPN v2.4.9, based on the
 1. Build patched openvpn version and put it to the folder with a script
 2. Build aws-vpn-client wrapper `go build .`
 3. `cp ./awsvpnclient.yml.example ./awsvpnclient.yml` and update the necsery paths.
-4. Finally run `./aws-vpn-client serve --config myconfig.openvpn` to connect to the AWS.
+4. Finally run `./aws-vpn-client serve --config myconfig.openvpn` to connect to the AWS, or run it under root privilege, `sudo ./aws-vpn-client serve --config myconfig.openvpn`
 
 ## Todo
 
