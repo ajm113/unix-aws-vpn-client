@@ -1,6 +1,6 @@
 # Unix AWS VPN Client
 
-~Connects to AWS Client VPN with OSS OpenVPN using SAML authentication for Unix enviroments. Linx, Mac, BSD. Forked from @samm-git's aws-vpn-client.~
+*Connects to AWS Client VPN with OSS OpenVPN using SAML authentication for Unix enviroments. Linx, Mac, BSD. Forked from @samm-git's aws-vpn-client.*
 
 See [samm-git's blog post](https://smallhacks.wordpress.com/2020/07/08/aws-client-vpn-internals/) for the implementation details.
 
