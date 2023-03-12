@@ -10,8 +10,8 @@ import (
 
 const (
 	appName      = "aws-vpn-client"
-	repoUrl      = "https://github.com/samm-git/aws-vpn-client"
-	bugReportUrl = "https://github.com/samm-git/aws-vpn-client/issues"
+	repoUrl      = "https://github.com/ajm113/unix-aws-vpn-client"
+	bugReportUrl = "https://github.com/ajm113/unix-aws-vpn-client/issues"
 	errorSuffix  = "Questions? Please visit our issue tracker: " + bugReportUrl
 
 	defaultConfigFilename      = "awsvpnclient.yml"
