@@ -140,7 +140,11 @@ func startOpenVPNConnection(handle *serveHandle) {
 		log.Fatal().Err(err).Msg("No URLs found in payload from server! Please check the DEBUG logs for more information. " + errorSuffix)
 	}
 
-	openDefaultBrowser(foundURLs[len(foundURLs)-1])
+	authUrl := foundURLs[len(foundURLs)-1]
+
+	log.Info().Msgf("open to authenticate into OpenVPN tunnel: %s", authUrl)
+
+	openDefaultBrowser(authUrl)
 
 	log.Info().Msg("Waiting for SAML response from 3rd party service...")
 	SAMLResponse := <-handle.SAMLResponse
