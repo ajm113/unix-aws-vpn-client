@@ -8,7 +8,6 @@ import (
 
 type (
 	vpn struct {
-		Port      int
 		OpenVPN   string
 		Sudo      string
 		Shell     string
