@@ -1,6 +1,6 @@
 # Unix AWS VPN Client
 
-*Connects to AWS Client VPN with OSS OpenVPN using SAML authentication for Unix enviroments. Linx, Mac, BSD. Forked from @samm-git's aws-vpn-client.*
+*Connects to AWS Client VPN with OSS OpenVPN using SAML authentication for Unix environments. Linx, Mac, BSD. Forked from @samm-git's aws-vpn-client.*
 
 See [samm-git's blog post](https://smallhacks.wordpress.com/2020/07/08/aws-client-vpn-internals/) for the implementation details.
 
@@ -16,12 +16,12 @@ doesn't provide useful logging. Supposedly works on Ubuntu...
 1. `$ git clone https://github.com/ajm113/unix-aws-vpn-client.git`
 2. `$ cd unix-aws-vpn-client`
 3. `go build .`
-4. `cp ./unix-aws-vpn-client {TO A DIR that's listed in your $PATH}`
+4. `cp ./unix-aws-vpn-client {TO a DIR that's listed in your $PATH or whatever your personal preference is}`
 
 ### Setting Up
 
 1. Inside the root directory run `./unix-aws-vpn-client setup`.
-2. Let it run until it spits out `openvpn_aws` executable. -- You may need to install required dependancies that compiler prints out if it stops.
+2. Let it run until it spits out `openvpn_aws` executable. -- You may need to install required dependencies that compiler prints out if it stops.
 3. Move `openvpn_aws` to a directory of your choosing.
 4. Copy/paste this template into your `awsvpnclient.yml` inside `~/.config/awsvpnclient/` folder:
 
@@ -39,6 +39,16 @@ server:
   addr: "127.0.0.1:35001"              # SAML Server listen address after auth redirect. (default is fine for most setups)
 
 ```
+
+### Running Tunnel
+
+After everything is compiled and setup. All you have to do now is run:
+
+```bash
+$ unix-aws-vpn-client start start --config myvpnfile.ovpn
+```
+
+After you successfully authenticated (and sudo login) you should now have a tunnel to AWS.
 
 ## Todo
 
