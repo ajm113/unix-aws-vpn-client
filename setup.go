@@ -115,7 +115,7 @@ func setupAction(c *cli.Context) error {
 func downloadOpenVPN(dir string) error {
 	log.Debug().Str("url", OpenVPNSource).Str("dir", dir).Msg("Downloading OpenVPN...")
 
-	out, err := exec.Command("wget", "-P", dir, "-O", OpenVPNSourceFolderName, OpenVPNSource).CombinedOutput()
+	out, err := exec.Command("wget", "-P", dir, "-O", path.Join(dir, OpenVPNTarName), OpenVPNSource).CombinedOutput()
 
 	if err != nil {
 		log.Error().Err(err).Bytes("out", out).Msg("Failed downloading OpenVPN " + errorSuffix)

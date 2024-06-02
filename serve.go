@@ -112,7 +112,6 @@ func startOpenVPNConnection(handle *serveHandle) {
 	log.Info().
 		Str("config", handle.OpenVPNConnectionConfig.Filename).
 		Str("remote", handle.ServiceIPv4).
-		Int("port", handle.Config.Vpn.Port).
 		Msg("Fetching redirect URL from service...")
 
 	command := exec.Command(

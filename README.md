@@ -7,15 +7,40 @@ See [samm-git's blog post](https://smallhacks.wordpress.com/2020/07/08/aws-clien
 [AWS released Linux desktop client](https://aws.amazon.com/about-aws/whats-new/2021/06/aws-client-vpn-launches-desktop-client-for-linux/), however, it's extremely buggy and
 doesn't provide useful logging. Supposedly works on Ubuntu...
 
-## How To Build
+## Install
 
-1. Build patched openvpn version and put it to the scripts folder or somewhere of your choosing.
-2. Build aws-vpn-client wrapper `go build .`
-3. `cp ./awsvpnclient.yml.example ./awsvpnclient.yml` and update the necsery fields.
-4. Finally run `./aws-vpn-client serve --config myconfig.openvpn` to connect to the AWS.
+*Please make sure you have Go 1.17+ installed on your system*
+
+### Building Client
+
+1. `$ git clone https://github.com/ajm113/unix-aws-vpn-client.git`
+2. `$ cd unix-aws-vpn-client`
+3. `go build .`
+4. `cp ./unix-aws-vpn-client {TO A DIR that's listed in your $PATH}`
+
+### Setting Up
+
+1. Inside the root directory run `./unix-aws-vpn-client setup`.
+2. Let it run until it spits out `openvpn_aws` executable. -- You may need to install required dependancies that compiler prints out if it stops.
+3. Move `openvpn_aws` to a directory of your choosing.
+4. Copy/paste this template into your `awsvpnclient.yml` inside `~/.config/awsvpnclient/` folder:
+
+```yml
+
+debug: false                            # prints useful debugging information
+browser: false                          # Opens the web browser for auth step. Works a little wonky on some distros.
+vpn:
+  openvpn: {path to your openvpn_aws}   #  Path to openvpn_aws binary.                        
+  sudo: /bin/sudo                       # Sudo command to run when establishing a tunnel to AWS.    (default is fine for most distros)
+  shell: /bin/sh                        # bash/shell command when establishing a tunnel to AWS.     (default is fine for most distros)
+  shellargs:                            # bash/shell commands to add when executing shell commands. (default is fine for sh)
+    - "-c"
+server:
+  addr: "127.0.0.1:35001"              # SAML Server listen address after auth redirect. (default is fine for most setups)
+
+```
 
 ## Todo
 
-* Unit tests
-* Smoother user expirence running on Linux with permissions.
-* Automatic script to patch and build openvpn.
+* Unit Tests
+* Cleaner Code
