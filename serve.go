@@ -166,7 +166,7 @@ func startOpenVPNConnection(handle *serveHandle) {
 	}
 
 	escapedSAMLResponse := url.QueryEscape(SAMLResponse)
-	log.Debug().Str("SAMLResponse", escapedSAMLResponse).Msgf("writting temp openvpn auth file")
+	log.Debug().Str("SAMLResponse", escapedSAMLResponse).Msgf("writing temp openvpn auth file")
 	tmpAuthConifg, err = saveOpenVPNAuthConfig(handle.TempDir, "CRV1::"+SID+"::"+escapedSAMLResponse)
 
 	if err != nil {

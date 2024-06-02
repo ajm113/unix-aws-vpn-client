@@ -66,11 +66,13 @@ func main() {
 					TakesFile: true,
 					Required:  true,
 					Name:      "config",
+					Aliases:   []string{"c"},
 					Usage:     "raw openvpn configuration",
 				},
 				&cli.StringFlag{
 					TakesFile: true,
 					Name:      "configTmpDir",
+					Aliases:   []string{"t"},
 					Value:     os.TempDir(),
 					Usage:     "Temp folder location of formatted openvpn configurations.",
 				},
