@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strconv"
 	"strings"
@@ -20,8 +19,8 @@ type (
 	}
 )
 
-func parseAndFormatOpenVPNConfig(inFilename, outDir string, clientConfig *config) (config *openVPNConfig, err error) {
-	fileBytes, err := ioutil.ReadFile(inFilename)
+func parseAndFormatOpenVPNConfig(inFilename, outDir string) (config *openVPNConfig, err error) {
+	fileBytes, err := os.ReadFile(inFilename)
 
 	if err != nil {
 		return
@@ -31,7 +30,7 @@ func parseAndFormatOpenVPNConfig(inFilename, outDir string, clientConfig *config
 
 	if outDir != "" {
 		config.Formatted = true
-		err = formatAndSaveOpenVPNConfig(fileBytes, outDir, config, clientConfig)
+		err = formatAndSaveOpenVPNConfig(fileBytes, outDir, config)
 	} else {
 		config.Filename = inFilename
 	}
@@ -88,7 +87,7 @@ func parseOpenVPNConfig(fileBytes []byte) (config *openVPNConfig, err error) {
 	return
 }
 
-func formatAndSaveOpenVPNConfig(fileBytes []byte, outDir string, config *openVPNConfig, clientConfig *config) (err error) {
+func formatAndSaveOpenVPNConfig(fileBytes []byte, outDir string, config *openVPNConfig) (err error) {
 	sliceData := strings.Split(string(fileBytes), "\n")
 
 	if len(sliceData) == 0 {
@@ -112,6 +111,7 @@ func formatAndSaveOpenVPNConfig(fileBytes []byte, outDir string, config *openVPN
 			strings.HasPrefix(line, "auth-federate") ||
 			strings.HasPrefix(line, "auth-retry interact") ||
 			strings.HasPrefix(line, "remote ") ||
+			strings.HasPrefix(line, "verb") ||
 			strings.HasPrefix(line, "remote-random-hostname") {
 			continue
 		}

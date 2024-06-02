@@ -9,6 +9,7 @@ import (
 	"os/exec"
 	"strconv"
 
+	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/urfave/cli/v2"
 	"mvdan.cc/xurls/v2"
@@ -27,8 +28,6 @@ type (
 )
 
 func serveAction(c *cli.Context) error {
-	log.Info().Msg("Loading configuration files...")
-
 	openVPNConfig := c.String("config")
 	tmpOpenVPNConfigDir := c.String("configTmpDir")
 	awsClientConfigFilename, err := searchConfigFilename()
@@ -39,11 +38,14 @@ func serveAction(c *cli.Context) error {
 		log.Fatal().Err(err).Msg("unexpected error loading " + appName + " config! " + errorSuffix)
 	}
 
-	log.Debug().Str("config", awsClientConfigFilename).Msg("loading " + appName + " config file")
 	awsclientConfig, err := loadConfig(awsClientConfigFilename)
 
 	if err != nil {
 		log.Fatal().Str("config", awsClientConfigFilename).Err(err).Msg("unexpected error loading " + appName + " config! " + errorSuffix)
+	}
+
+	if !awsclientConfig.Debug {
+		zerolog.SetGlobalLevel(zerolog.InfoLevel)
 	}
 
 	log.Debug().
@@ -51,7 +53,7 @@ func serveAction(c *cli.Context) error {
 		Str("configOutDir", tmpOpenVPNConfigDir).
 		Msg("Parsing openvpn config and saving formatted version for openvpn")
 
-	connectionConfig, err := parseAndFormatOpenVPNConfig(openVPNConfig, tmpOpenVPNConfigDir, awsclientConfig)
+	connectionConfig, err := parseAndFormatOpenVPNConfig(openVPNConfig, tmpOpenVPNConfigDir)
 
 	if err != nil {
 		log.Fatal().
@@ -136,15 +138,21 @@ func startOpenVPNConnection(handle *serveHandle) {
 	rxStrict := xurls.Strict()
 	foundURLs := rxStrict.FindAllString(string(out), -1)
 
-	if foundURLs == nil {
+	if len(foundURLs) == 0 {
 		log.Fatal().Err(err).Msg("No URLs found in payload from server! Please check the DEBUG logs for more information. " + errorSuffix)
+	}
+
+	if len(foundURLs) > 1 {
+		log.Fatal().Strs("foundURLs", foundURLs).Msg("More then one URL found in response payload! " + errorSuffix)
 	}
 
 	authUrl := foundURLs[len(foundURLs)-1]
 
 	log.Info().Msgf("open to authenticate into OpenVPN tunnel: %s", authUrl)
 
-	openDefaultBrowser(authUrl)
+	if handle.Config.Browser {
+		openDefaultBrowser(authUrl)
+	}
 
 	log.Info().Msg("Waiting for SAML response from 3rd party service...")
 	SAMLResponse := <-handle.SAMLResponse
@@ -158,7 +166,9 @@ func startOpenVPNConnection(handle *serveHandle) {
 		log.Fatal().Err(err).Msg("Failed finding SID in initial handshake! Please enable DEBUG mode to see payload. " + errorSuffix)
 	}
 
-	tmpAuthConifg, err = saveOpenVPNAuthConfig(handle.TempDir, "CRV1::"+SID+"::"+url.QueryEscape(SAMLResponse))
+	escapedSAMLResponse := url.QueryEscape(SAMLResponse)
+	log.Debug().Str("SAMLResponse", escapedSAMLResponse).Msgf("writting temp openvpn auth file")
+	tmpAuthConifg, err = saveOpenVPNAuthConfig(handle.TempDir, "CRV1::"+SID+"::"+escapedSAMLResponse)
 
 	if err != nil {
 		log.Fatal().Err(err).Msg("Failed saving auth config for OpenVPN tunnel! " + errorSuffix)
