@@ -1,4 +1,6 @@
 aws-vpn-client
 openvpn
+openvpn_aws
+*.ovpn
 *.yml
 *.openvpn
