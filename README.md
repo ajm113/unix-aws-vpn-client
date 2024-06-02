@@ -45,7 +45,7 @@ server:
 After everything is compiled and setup. All you have to do now is run:
 
 ```bash
-$ unix-aws-vpn-client start start --config myvpnfile.ovpn
+$ unix-aws-vpn-client start --config myvpnfile.ovpn
 ```
 
 After you successfully authenticated (and sudo login) you should now have a tunnel to AWS.
