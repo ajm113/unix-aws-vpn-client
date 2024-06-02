@@ -27,10 +27,10 @@ doesn't provide useful logging. Supposedly works on Ubuntu...
 
 ```yml
 
-debug: false                            # prints useful debugging information
+debug: false                            # Prints useful debugging information
 browser: false                          # Opens the web browser for auth step. Works a little wonky on some distros.
 vpn:
-  openvpn: {path to your openvpn_aws}   #  Path to openvpn_aws binary.                        
+  openvpn: {path to your openvpn_aws}   # Path to openvpn_aws binary.                        
   sudo: /bin/sudo                       # Sudo command to run when establishing a tunnel to AWS.    (default is fine for most distros)
   shell: /bin/sh                        # bash/shell command when establishing a tunnel to AWS.     (default is fine for most distros)
   shellargs:                            # bash/shell commands to add when executing shell commands. (default is fine for sh)
