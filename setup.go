@@ -139,7 +139,7 @@ func extractTarFile(filename, dir string) error {
 
 func patchOpenVPN(source, patchFilename string) error {
 	log.Debug().Msgf("Running 'patch -p 1 -d %s < %s'", source, patchFilename)
-	cmd := exec.Command("/bin/bash", "-c", "/usr/bin/patch", "-p", "1", "-d", source, "<", patchFilename)
+	cmd := exec.Command("/bin/bash", "-c", "/usr/bin/patch -p 1 -d "+source+" < "+patchFilename)
 	cmd.Env = os.Environ()
 
 	out, err := cmd.CombinedOutput()
