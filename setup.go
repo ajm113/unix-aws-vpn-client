@@ -103,8 +103,6 @@ func setupAction(c *cli.Context) error {
 		return fmt.Errorf("failed patching OpenVPN source code")
 	}
 
-	panic("wow")
-
 	log.Info().Msgf("Compiling OpenVPN...")
 	err = compileOpenVPN(sourceDir, outputDir)
 	if err != nil {
