@@ -44,9 +44,9 @@ func isRoot() bool {
 func openDefaultBrowser(defaultUser, url string) (err error) {
 	switch runtime.GOOS {
 	case "linux":
-		err = runAsNonRoot(defaultUser, "xdg-open", url)
+		err = commandAndStartAsNonRoot(defaultUser, "xdg-open", url)
 	case "darwin":
-		err = runAsNonRoot(defaultUser, "open", url)
+		err = commandAndStartAsNonRoot(defaultUser, "open", url)
 	default:
 		err = fmt.Errorf("unsupported platform %s", runtime.GOOS)
 	}
@@ -150,14 +150,25 @@ func extractSIDFromOpenVPN(output string) (SID string, err error) {
 	return
 }
 
-func runAsNonRoot(defaultUser string, command string, args ...string) error {
-	user = os.Getenv("SUDO_USER")
-	if user == "" {
-		user = defaultUser
+// shorthand for exec.Command(command, args...).Start() except it does SysProcAttr and Env injection
+// to ensure web browsers can safely startup.
+//
+// - defaultUser Should only be filled if for some reason the SUDO_USER env variable wont exist.
+// - command Binary we want to execute.
+func commandAndStartAsNonRoot(defaultUser string, command string, args ...string) error {
+
+	// If we aren't running as root. We just run exec.Command normally.
+	if !isRoot() {
+		return exec.Command(command, args...).Start()
+	}
+
+	userName := os.Getenv("SUDO_USER")
+	if userName == "" {
+		userName = defaultUser
 	}
 
 	// Get the user information for the non-root user (e.g., the user running the app initially)
-	nonRootUser, err := user.Lookup(user) // Replace "your_username" with the actual user
+	nonRootUser, err := user.Lookup(userName) // Replace "your_username" with the actual user
 	if err != nil {
 		return fmt.Errorf("failed to lookup user: %w", err)
 	}
