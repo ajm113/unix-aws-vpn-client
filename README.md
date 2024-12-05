@@ -50,7 +50,10 @@ $ unix-aws-vpn-client start --config myvpnfile.ovpn
 
 After you successfully authenticated (and sudo login) you should now have a tunnel to AWS.
 
-## Todo
+## Todos
 
-* Unit Tests
-* Cleaner Code
+* Add unit testing to code.
+* Graceful shutdown support.
+* General code improvements (typo fixes welcomed!).
+* Improved config documentation w/ improved defaults!
+* Add memes?... idk
