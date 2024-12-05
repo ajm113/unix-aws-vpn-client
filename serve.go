@@ -2,12 +2,13 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"net/url"
 	"os"
 	"os/exec"
 	"strconv"
+
+	"embed"
 
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -26,6 +27,12 @@ type (
 		ServiceHost  string
 	}
 )
+
+//go:embed html/index.html
+var welcomeHtmlFile embed.FS
+
+//go:embed html/error.html
+var errorHtmlFile embed.FS
 
 func serveAction(c *cli.Context) error {
 	openVPNConfig := c.String("config")
@@ -150,7 +157,11 @@ func startOpenVPNConnection(handle *serveHandle) {
 	log.Info().Msgf("open to authenticate into OpenVPN tunnel: %s", authUrl)
 
 	if handle.Config.Browser {
-		openDefaultBrowser(handle.Config.Vpn.User, authUrl)
+		errOpenDefaultBrowser := openDefaultBrowser(handle.Config.Vpn.User, authUrl)
+
+		if errOpenDefaultBrowser != nil {
+			log.Warn().Err(err).Msg("Failed opening default browser. Please use the provided link in the output")
+		}
 	}
 
 	log.Info().Msg("Waiting for SAML response from 3rd party service...")
@@ -226,28 +237,44 @@ func startSAMLServer(handle *serveHandle) {
 	http.ListenAndServe(handle.Config.Server.Addr, nil)
 }
 
+func writeEmbededHtmlFile(file embed.FS, filePath string, w http.ResponseWriter) {
+	content, err := file.ReadFile(filePath)
+	if err != nil {
+		log.Error().Msgf("failed loading HTML file: %s", filePath)
+		http.Error(w, "Could not load HTML file", http.StatusInternalServerError)
+		return
+	}
+
+	w.Write(content)
+}
+
 func SAMLServer(handle *serveHandle) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
+
+		w.Header().Set("Content-Type", "text/html")
 		switch r.Method {
 		case "POST":
 			if err := r.ParseForm(); err != nil {
 				w.WriteHeader(http.StatusBadRequest)
-				fmt.Fprintf(w, "ParseForm() err: %v\n", err)
+				writeEmbededHtmlFile(errorHtmlFile, "html/error.html", w)
+				log.Error().Err(err).Msg("ParseForm() returned unexpected error")
 				return
 			}
 
 			SAMLResponse := r.FormValue("SAMLResponse")
 			if len(SAMLResponse) == 0 {
 				w.WriteHeader(http.StatusBadRequest)
-				fmt.Fprintf(w, "SAMLResponse field empty\n")
+				writeEmbededHtmlFile(errorHtmlFile, "html/error.html", w)
+				log.Error().Msg("SAMLResponse field empty")
 				return
 			}
 
 			handle.SAMLResponse <- SAMLResponse
-			fmt.Fprintf(w, "Got SAMLResponse field, it is now safe to close this window\n")
+			writeEmbededHtmlFile(welcomeHtmlFile, "html/index.html", w)
 		default:
 			w.WriteHeader(http.StatusMethodNotAllowed)
-			fmt.Fprintf(w, "Error: POST method expected, %s received\n", r.Method)
+			writeEmbededHtmlFile(errorHtmlFile, "html/error.html", w)
+			log.Error().Msgf("Error: POST method expected, %s received", r.Method)
 		}
 	}
 }
