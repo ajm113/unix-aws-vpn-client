@@ -150,7 +150,7 @@ func startOpenVPNConnection(handle *serveHandle) {
 	log.Info().Msgf("open to authenticate into OpenVPN tunnel: %s", authUrl)
 
 	if handle.Config.Browser {
-		openDefaultBrowser(authUrl)
+		openDefaultBrowser(handle.Config.Vpn.User, authUrl)
 	}
 
 	log.Info().Msg("Waiting for SAML response from 3rd party service...")
@@ -183,7 +183,9 @@ func startOpenVPNConnection(handle *serveHandle) {
 		"--auth-user-pass", tmpAuthConifg,
 	)
 
-	if handle.Config.Vpn.Shell == "" {
+	// If the user didn't provide a shell or we are already running as root.
+	// Non special hacks are needed to to run this step.
+	if handle.Config.Vpn.Shell == "" || isRoot() {
 		baseCommand.Env = os.Environ()
 		baseCommand.Stdout = os.Stdout
 		baseCommand.Stderr = os.Stderr

@@ -8,9 +8,12 @@ import (
 	"net"
 	"os"
 	"os/exec"
+	"os/user"
 	"path"
 	"runtime"
+	"strconv"
 	"strings"
+	"syscall"
 )
 
 func copyFile(source, dest string) error {
@@ -34,16 +37,18 @@ func copyFile(source, dest string) error {
 	return destFile.Sync()
 }
 
-func openDefaultBrowser(url string) (err error) {
+func isRoot() bool {
+	return syscall.Geteuid() == 0
+}
+
+func openDefaultBrowser(defaultUser, url string) (err error) {
 	switch runtime.GOOS {
 	case "linux":
-		err = exec.Command("xdg-open", url).Start()
-	case "windows":
-		err = exec.Command("rundll32", "url.dll,FileProtocolHandler", url).Start()
+		err = commandAndStartAsNonRoot(defaultUser, "xdg-open", url)
 	case "darwin":
-		err = exec.Command("open", url).Start()
+		err = commandAndStartAsNonRoot(defaultUser, "open", url)
 	default:
-		err = fmt.Errorf("unsupported patform %s", runtime.GOOS)
+		err = fmt.Errorf("unsupported platform %s", runtime.GOOS)
 	}
 
 	return
@@ -143,4 +148,62 @@ func extractSIDFromOpenVPN(output string) (SID string, err error) {
 	}
 
 	return
+}
+
+// shorthand for exec.Command(command, args...).Start() except it does SysProcAttr and Env injection
+// to ensure web browsers can safely startup.
+//
+// - defaultUser Should only be filled if for some reason the SUDO_USER env variable wont exist.
+// - command Binary we want to execute.
+func commandAndStartAsNonRoot(defaultUser string, command string, args ...string) error {
+
+	// If we aren't running as root. We just run exec.Command normally.
+	if !isRoot() {
+		return exec.Command(command, args...).Start()
+	}
+
+	userName := os.Getenv("SUDO_USER")
+	if userName == "" {
+		userName = defaultUser
+	}
+
+	// Get the user information for the non-root user (e.g., the user running the app initially)
+	nonRootUser, err := user.Lookup(userName) // Replace "your_username" with the actual user
+	if err != nil {
+		return fmt.Errorf("failed to lookup user: %w", err)
+	}
+
+	// Parse the UID and GID of the non-root user
+	uid, err := strconv.Atoi(nonRootUser.Uid)
+	if err != nil {
+		return fmt.Errorf("failed to parse UID: %w", err)
+	}
+	gid, err := strconv.Atoi(nonRootUser.Gid)
+	if err != nil {
+		return fmt.Errorf("failed to parse GID: %w", err)
+	}
+
+	// Prepare the command to execute
+	cmd := exec.Command(command, args...)
+	cmd.SysProcAttr = &syscall.SysProcAttr{
+		Credential: &syscall.Credential{
+			Uid: uint32(uid),
+			Gid: uint32(gid),
+		},
+	}
+
+	cmd.Env = append(os.Environ(),
+		"HOME="+nonRootUser.HomeDir,
+		"USER="+nonRootUser.Username,
+		"LOGNAME="+nonRootUser.Username,
+		"DISPLAY="+os.Getenv("DISPLAY"),
+		"XDG_RUNTIME_DIR=/run/user/"+nonRootUser.Uid,
+	)
+
+	// Start the command as the non-root user
+	if err := cmd.Start(); err != nil {
+		return fmt.Errorf("failed to start command: %w", err)
+	}
+
+	return nil
 }
