@@ -40,6 +40,30 @@ server:
 
 ```
 
+#### How to Run OpenVPN as Non-Root (optional, but prefered!)
+
+If you prefer to NOT give the compiled patched openvpn binary full root privilages, but still lock the executable down at a user level. 
+You can easily run these shell commands:
+
+```sh
+chmod 750 /path/to/openvpn
+chown root:youruser /path/to/openvpn
+sudo setcap cap_net_admin+ep /path/to/openvpn_aws
+```
+
+The first to commands will lock the patched openvpn binary to your user/group.
+The last command will give `CAP_NET_ADMIN` and `CAP_NET_BIND_SERVICE` minimal privileges to the patched compiled executable.
+You may change the the `awsvpnclient.yaml` to have a empty string for `vpn.sudo` to avoid `sudo` login.
+
+```yml
+...
+vpn:
+    sudo: # leave blank
+...
+```
+
+Now you can run `unix-aws-vpn-client start` without ever needing to sudo login into the patched openvpn executable!
+
 ### Running Tunnel
 
 After everything is compiled and setup. All you have to do now is run:
